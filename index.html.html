@@ -1,0 +1,2138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CCMEC — Dashboard</title>
+<style>
+  :root{
+    --bg:#EEF0F3; --panel:#FFFFFF; --panel-2:#F5F6F8; --row-alt:#FAFBFC;
+    --border:#D7DBE1; --border-soft:#E4E7EB;
+    --text:#1E232B; --text-dim:#5B6470; --text-faint:#88909A;
+    --brand:#1E8577; --brand-dark:#E3F3F0;
+
+    --c-feito:#2F6FD0;        --c-feito-bg:#E5EDFB;
+    --c-andamento:#3E8B4C;    --c-andamento-bg:#E6F4E8;
+    --c-risco:#B4801F;        --c-risco-bg:#FBF1DA;
+    --c-atrasado:#B0392E;     --c-atrasado-bg:#FBE7E4;
+    --c-iniciar:#69727E;      --c-iniciar-bg:#EDEFF2;
+    --c-definir:#2C8489;      --c-definir-bg:#E1F2F3;
+    --c-cancelado:#69727E;    --c-cancelado-bg:#EDEFF2;
+    --c-congelado:#454C56;    --c-congelado-bg:#E6E8EB;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+    font-size:13.5px;line-height:1.5;-webkit-font-smoothing:antialiased;
+  }
+  .num{font-feature-settings:"tnum" 1;font-variant-numeric:tabular-nums;}
+  h1,h2{font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;font-weight:400;margin:0;}
+  button{font-family:inherit;cursor:pointer;}
+  .wrap{max-width:1360px;margin:0 auto;padding:22px 26px 60px;}
+
+  /* TOP BAR */
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding-bottom:16px;border-bottom:1px solid var(--border);margin-bottom:16px;}
+  .brand{display:flex;align-items:baseline;gap:10px;}
+  .brand h1{font-size:22px;}
+  .brand .ref{font-size:12px;color:var(--text-dim);}
+  .tabs{display:flex;gap:8px;}
+  .tab-btn{
+    background:var(--panel-2);border:1px solid var(--border);color:var(--text-dim);
+    padding:9px 16px;border-radius:5px;font-size:13px;font-weight:500;
+  }
+  .tab-btn.active{background:var(--brand-dark);color:#146356;border-color:#BFE3DC;font-weight:600;}
+  .tab-btn:hover:not(.active){color:var(--text);}
+
+  .databanner{
+    font-size:12px;color:var(--text-faint);background:var(--panel);border:1px solid var(--border-soft);
+    border-radius:5px;padding:8px 14px;margin-bottom:16px;
+  }
+  .databanner strong{color:var(--text-dim);}
+
+  /* FILTER BAR */
+  .filterbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px;}
+  select, input[type=text], input[type=date]{
+    background:var(--panel-2);border:1px solid var(--border);color:var(--text);
+    padding:7px 10px;border-radius:4px;font-size:12.5px;font-family:inherit;
+  }
+  select:focus, input:focus{outline:2px solid var(--brand);outline-offset:1px;}
+  .dr-label{font-size:11.5px;color:var(--text-faint);}
+  .btn{
+    background:var(--panel-2);border:1px solid var(--border);color:var(--text-dim);
+    padding:7px 13px;border-radius:4px;font-size:12.5px;
+  }
+  .btn:hover{color:var(--text);border-color:#3a4451;}
+  .btn.primary{background:var(--brand-dark);color:#146356;border-color:#BFE3DC;font-weight:600;}
+  .btn.ghost{background:transparent;}
+  .spacer{flex:1;}
+
+  .toolrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px;}
+  input#search{flex:1;min-width:220px;}
+
+  /* LEGEND */
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--text-dim);
+    background:var(--panel);border:1px solid var(--border-soft);border-radius:5px;padding:9px 14px;margin-bottom:18px;}
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+
+  /* TREE — shared */
+  .tree{border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+  .node-row{
+    display:flex;align-items:center;gap:10px;
+    border-bottom:1px solid var(--border-soft);
+    background:var(--panel);
+  }
+  .node-row.depth-0{background:var(--panel-2);font-weight:600;}
+  .node-row.depth-1{background:var(--row-alt);}
+  .node-row:hover{background:var(--border-soft);}
+  .node-toggle{
+    width:22px;flex:0 0 22px;text-align:center;color:var(--text-faint);font-size:11px;
+    user-select:none;
+  }
+  .node-badge{
+    width:22px;height:22px;flex:0 0 22px;border-radius:4px;color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;
+  }
+  .node-dot{width:8px;height:8px;border-radius:50%;flex:0 0 8px;}
+  .node-label{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12.8px;}
+  .node-meta{color:var(--text-faint);font-size:11.5px;flex:0 0 auto;padding-right:14px;white-space:nowrap;}
+  .clickable{cursor:pointer;}
+  .hidden{display:none;}
+
+  /* GANTT SPECIFIC */
+  .gantt-scroll{overflow-x:auto;}
+  .gantt-row{position:relative;flex:0 0 auto;display:flex;align-items:stretch;}
+  .gantt-label-col{width:340px;flex:0 0 340px;display:flex;align-items:center;padding:8px 10px;gap:8px;}
+  .gantt-chart-col{flex:1;position:relative;min-width:600px;}
+  .gantt-axis{display:flex;border-bottom:1px solid var(--border);background:var(--panel-2);position:sticky;top:0;z-index:3;}
+  .gantt-axis .ax-cell{flex:1;text-align:center;font-size:10.5px;color:var(--text-faint);padding:8px 0;border-left:1px solid var(--border-soft);}
+  .gantt-track{position:relative;height:36px;display:flex;}
+  .gantt-track .g-cell{flex:1;border-left:1px solid var(--border-soft);}
+  .gantt-bar{
+    position:absolute;top:7px;height:22px;border-radius:3px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:10px;font-weight:700;color:#0B0D10;letter-spacing:0.3px;overflow:hidden;
+    white-space:nowrap;min-width:6px;
+  }
+  .gantt-bar .lbl{padding:0 6px;}
+  .gantt-milestone{
+    position:absolute;top:9px;width:14px;height:14px;
+    transform:rotate(45deg);border-radius:2px;
+    box-shadow:0 0 0 1px rgba(0,0,0,0.08);
+  }
+  .today-marker{position:absolute;top:0;bottom:0;width:1px;background:#B4801F;z-index:2;}
+  .today-marker::after{content:"hoje";position:absolute;top:-14px;left:-13px;font-size:9px;color:#B4801F;}
+
+  /* STATUS REPORT SPECIFIC */
+  .kpi-row{display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr 1fr 1fr;gap:12px;margin-bottom:20px;}
+  .kpi-card{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:16px 16px;}
+  .kpi-card.hero{border-left:3px solid var(--c-andamento);}
+  .kpi-val{font-family:Georgia,serif;font-size:30px;}
+  .kpi-card.hero .kpi-val{font-size:36px;}
+  .kpi-sub{font-size:11px;color:var(--text-faint);margin-top:4px;}
+  .kpi-lbl{font-size:11px;color:var(--text-dim);margin-top:8px;letter-spacing:0.2px;}
+  .kpi-card.k-feito .kpi-val{color:var(--c-feito);}
+  .kpi-card.k-andamento .kpi-val{color:var(--c-andamento);}
+  .kpi-card.k-iniciar .kpi-val{color:var(--c-iniciar);}
+  .kpi-card.k-atrasado .kpi-val{color:var(--c-atrasado);}
+  .kpi-card.k-risco .kpi-val{color:var(--c-risco);}
+  .kpi-card.k-definir .kpi-val{color:var(--c-definir);}
+
+  .pill{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:3px;white-space:nowrap;letter-spacing:0.2px;}
+  .resp-chip{font-size:11px;color:var(--text-dim);background:var(--panel-2);border:1px solid var(--border-soft);border-radius:3px;padding:2px 8px;white-space:nowrap;}
+  .code{font-size:11px;color:var(--text-faint);width:44px;flex:0 0 44px;}
+  .sr-count{color:var(--text-faint);font-size:11.5px;}
+
+  footer{margin-top:30px;padding-top:14px;border-top:1px solid var(--border-soft);color:var(--text-faint);font-size:11px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+
+  @media print{
+    .filterbar,.toolrow,.tabs,.btn{display:none !important;}
+    body{background:#fff;color:#111;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">
+      <h1>CCMEC · Dashboard</h1>
+      <span class="ref">Referência: 18 Set 2026</span>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" id="tabBtnGantt" onclick="setTab('gantt')">Gantt</button>
+      <button class="tab-btn" id="tabBtnStatus" onclick="setTab('status')">Status Report</button>
+    </div>
+  </div>
+
+  <div class="databanner" id="databanner"></div>
+
+  <div class="filterbar">
+    <select id="fStatus"></select>
+    <select id="fResp"></select>
+    <span class="dr-label">De</span>
+    <input type="date" id="fFrom">
+    <span class="dr-label">Até</span>
+    <input type="date" id="fTo">
+    <button class="btn primary" onclick="applyFilters()">Aplicar Filtro</button>
+    <button class="btn ghost" onclick="clearFilters()">✕ Limpar</button>
+    <div class="spacer"></div>
+    <button class="btn" id="btnExpandAll" onclick="toggleExpandAll()">▾ Expandir Tudo</button>
+    <button class="btn" onclick="window.print()">⬇ Exportar PDF</button>
+  </div>
+
+  <div class="toolrow">
+    <input type="text" id="search" placeholder="Buscar eixo, marco, tarefa, responsável…">
+    <div class="btn ghost" id="viewToggleWrap" style="display:flex;gap:0;padding:0;border:none;">
+      <button class="btn" id="btnMensal" onclick="setGranularity('month')">Mensal</button>
+      <button class="btn" id="btnSemanal" onclick="setGranularity('week')">Semanal</button>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span><span class="dot" style="background:var(--c-feito)"></span>Feito</span>
+    <span><span class="dot" style="background:var(--c-andamento)"></span>Em andamento</span>
+    <span><span class="dot" style="background:var(--c-risco)"></span>Risco de atraso</span>
+    <span><span class="dot" style="background:var(--c-atrasado)"></span>Atrasado</span>
+    <span><span class="dot" style="background:var(--c-iniciar)"></span>A iniciar</span>
+    <span><span class="dot" style="background:var(--c-definir)"></span>Definir datas</span>
+    <span><span class="dot" style="background:var(--c-cancelado)"></span>Cancelado</span>
+    <span><span class="dot" style="background:var(--c-congelado)"></span>Cancelado/Congelado</span>
+  </div>
+
+  <div id="ganttMeta" style="font-size:12px;color:var(--text-faint);margin-bottom:10px;"></div>
+  <div id="tabGantt"></div>
+
+  <div id="tabStatus" class="hidden">
+    <div class="kpi-row" id="kpiRow"></div>
+    <div id="statusMeta" style="font-size:12px;color:var(--text-faint);margin-bottom:10px;"></div>
+    <div id="statusTree" class="tree"></div>
+  </div>
+
+  <footer>
+    <span>Painel estático — regenerado a partir da planilha CCMEC · sem atualização automática.</span>
+    <span>Marcela · IDG · CCMEC 2026</span>
+  </footer>
+
+</div>
+
+<script>
+const RECORDS = [
+{
+"idx": 0,
+"eixo": "GESTÃO DO PROJETO",
+"grupo": null,
+"marco": null,
+"tarefa": "GESTÃO DO PROJETO",
+"label": "GESTÃO DO PROJETO",
+"level": "tarefa",
+"responsavel": "Tatiana Paulino de Azevedo",
+"status": "Definir Datas",
+"data_inicio": "2026-09-09",
+"data_fim": "2026-09-25",
+"duracao": 16.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": true,
+"is_overdue": false
+},
+{
+"idx": 1,
+"eixo": "GESTÃO DO PROJETO",
+"grupo": null,
+"marco": null,
+"tarefa": "PRODUÇÃO",
+"label": "PRODUÇÃO",
+"level": "tarefa",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": "2026-09-09",
+"data_fim": "2026-09-25",
+"duracao": 16.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": true,
+"is_overdue": false
+},
+{
+"idx": 2,
+"eixo": "GESTÃO DO PROJETO",
+"grupo": "PRODUÇÃO",
+"marco": null,
+"tarefa": "Kick-Off",
+"label": "Kick-Off",
+"level": "tarefa",
+"responsavel": "Tatiana Paulino de Azevedo",
+"status": "Definir Datas",
+"data_inicio": "2026-09-09",
+"data_fim": "2026-09-25",
+"duracao": 16.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": true,
+"is_overdue": false
+},
+{
+"idx": 3,
+"eixo": "GESTÃO DO PROJETO",
+"grupo": "PRODUÇÃO",
+"marco": "Kick-Off",
+"tarefa": "Apresentação para Kick-Off",
+"label": "Apresentação para Kick-Off",
+"level": "tarefa",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": "2026-09-09",
+"data_fim": "2026-09-21",
+"duracao": 12.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": true,
+"is_overdue": false
+},
+{
+"idx": 4,
+"eixo": "GESTÃO DO PROJETO",
+"grupo": "PRODUÇÃO",
+"marco": "Kick-Off",
+"tarefa": "Kick-Off",
+"label": "Kick-Off",
+"level": "tarefa",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": "2026-09-21",
+"data_fim": "2026-09-25",
+"duracao": 4.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": true,
+"is_overdue": false
+},
+{
+"idx": 5,
+"eixo": "GESTÃO DO PROJETO",
+"grupo": "PRODUÇÃO",
+"marco": null,
+"tarefa": "Workshop temático para a construções dos eixos temáticos do equipamento cultural",
+"label": "Workshop temático para a construções dos eixos temáticos do equipamento cultural",
+"level": "tarefa",
+"responsavel": "Tatiana Paulino de Azevedo",
+"status": "Em Andamento",
+"data_inicio": "2026-09-17",
+"data_fim": "2026-10-15",
+"duracao": 28.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": true,
+"is_overdue": false
+},
+{
+"idx": 6,
+"eixo": "GESTÃO DO PROJETO",
+"grupo": "PRODUÇÃO",
+"marco": "Workshop temático para a construções dos eixos temáticos do equipamento cultural",
+"tarefa": "Desenvolvimento: Como o MEC pode contribuir na construção de futuros mais justos no Brasil?",
+"label": "Desenvolvimento: Como o MEC pode contribuir na construção de futuros mais justos no Brasil?",
+"level": "tarefa",
+"responsavel": null,
+"status": "Em Andamento",
+"data_inicio": "2026-09-17",
+"data_fim": "2026-10-02",
+"duracao": 15.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": true,
+"is_overdue": false
+},
+{
+"idx": 7,
+"eixo": "GESTÃO DO PROJETO",
+"grupo": "PRODUÇÃO",
+"marco": "Workshop temático para a construções dos eixos temáticos do equipamento cultural",
+"tarefa": "Desenvolvimento: Como um centro cultural colabora com essa história pensando futuros?",
+"label": "Desenvolvimento: Como um centro cultural colabora com essa história pensando futuros?",
+"level": "tarefa",
+"responsavel": null,
+"status": "Em Andamento",
+"data_inicio": "2026-09-17",
+"data_fim": "2026-10-02",
+"duracao": 15.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": true,
+"is_overdue": false
+},
+{
+"idx": 8,
+"eixo": "GESTÃO DO PROJETO",
+"grupo": "PRODUÇÃO",
+"marco": "Workshop temático para a construções dos eixos temáticos do equipamento cultural",
+"tarefa": "Oficina de Futuros - com Scarano",
+"label": "Oficina de Futuros - com Scarano",
+"level": "tarefa",
+"responsavel": null,
+"status": "A Iniciar",
+"data_inicio": "2026-10-15",
+"data_fim": "2026-10-15",
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": true,
+"is_overdue": false
+},
+{
+"idx": 9,
+"eixo": "INSTITUCIONAL",
+"grupo": null,
+"marco": null,
+"tarefa": "INSTITUCIONAL",
+"label": "INSTITUCIONAL",
+"level": "tarefa",
+"responsavel": "Iago Gonçalves Pereira",
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 10,
+"eixo": "INSTITUCIONAL",
+"grupo": null,
+"marco": null,
+"tarefa": "INSTITUCIONAL",
+"label": "INSTITUCIONAL",
+"level": "tarefa",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 11,
+"eixo": "INSTITUCIONAL",
+"grupo": "INSTITUCIONAL",
+"marco": null,
+"tarefa": null,
+"label": "INSTITUCIONAL",
+"level": "grupo",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": null,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 12,
+"eixo": "PESQUISA E CURADORIA",
+"grupo": null,
+"marco": null,
+"tarefa": "PESQUISA E CURADORIA",
+"label": "PESQUISA E CURADORIA",
+"level": "tarefa",
+"responsavel": "Amarílis Lage de Macedo",
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": "2026-10-01",
+"duracao": null,
+"prioridade": "Alta",
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 13,
+"eixo": "PESQUISA E CURADORIA",
+"grupo": null,
+"marco": null,
+"tarefa": "PRODUÇÃO",
+"label": "PRODUÇÃO",
+"level": "tarefa",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 14,
+"eixo": "PESQUISA E CURADORIA",
+"grupo": "PRODUÇÃO",
+"marco": null,
+"tarefa": null,
+"label": "PRODUÇÃO",
+"level": "grupo",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 15,
+"eixo": "PESQUISA E CURADORIA",
+"grupo": "PRODUÇÃO",
+"marco": null,
+"tarefa": null,
+"label": "PRODUÇÃO",
+"level": "grupo",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": null,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 16,
+"eixo": "PESQUISA E CURADORIA",
+"grupo": "PRODUÇÃO",
+"marco": null,
+"tarefa": null,
+"label": "PRODUÇÃO",
+"level": "grupo",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": null,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 17,
+"eixo": "PESQUISA E CURADORIA",
+"grupo": "PRODUÇÃO",
+"marco": null,
+"tarefa": null,
+"label": "PRODUÇÃO",
+"level": "grupo",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": null,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 18,
+"eixo": "PESQUISA E CURADORIA",
+"grupo": "PRODUÇÃO",
+"marco": null,
+"tarefa": null,
+"label": "PRODUÇÃO",
+"level": "grupo",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": null,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 19,
+"eixo": "PESQUISA E CURADORIA",
+"grupo": "PRODUÇÃO",
+"marco": null,
+"tarefa": null,
+"label": "PRODUÇÃO",
+"level": "grupo",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": null,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 20,
+"eixo": "PESQUISA E CURADORIA",
+"grupo": null,
+"marco": null,
+"tarefa": "PRODUTOS",
+"label": "PRODUTOS",
+"level": "tarefa",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 21,
+"eixo": "PESQUISA E CURADORIA",
+"grupo": "PRODUTOS",
+"marco": null,
+"tarefa": "ITEM 1 - RELATÓRIO TÉCNICO DE MODELO CURATORIAL",
+"label": "ITEM 1 - RELATÓRIO TÉCNICO DE MODELO CURATORIAL",
+"level": "tarefa",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 22,
+"eixo": "PESQUISA E CURADORIA",
+"grupo": "PRODUTOS",
+"marco": "ITEM 1 - RELATÓRIO TÉCNICO DE MODELO CURATORIAL",
+"tarefa": null,
+"label": "ITEM 1 - RELATÓRIO TÉCNICO DE MODELO CURATORIAL",
+"level": "marco",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": null,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 23,
+"eixo": "PESQUISA E CURADORIA",
+"grupo": null,
+"marco": null,
+"tarefa": null,
+"label": "PESQUISA E CURADORIA",
+"level": "eixo",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": null,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 24,
+"eixo": "ARQUITETURA (PLANO DE OCUPAÇÃO E FLUXOS)",
+"grupo": null,
+"marco": null,
+"tarefa": "ARQUITETURA (PLANO DE OCUPAÇÃO E FLUXOS)",
+"label": "ARQUITETURA (PLANO DE OCUPAÇÃO E FLUXOS)",
+"level": "tarefa",
+"responsavel": "Tatiane Baptista Proba Rocha",
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 25,
+"eixo": "ARQUITETURA (PLANO DE OCUPAÇÃO E FLUXOS)",
+"grupo": null,
+"marco": null,
+"tarefa": "PRODUÇÃO",
+"label": "PRODUÇÃO",
+"level": "tarefa",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 26,
+"eixo": "ARQUITETURA (PLANO DE OCUPAÇÃO E FLUXOS)",
+"grupo": "PRODUÇÃO",
+"marco": null,
+"tarefa": null,
+"label": "PRODUÇÃO",
+"level": "grupo",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 27,
+"eixo": "ARQUITETURA (PLANO DE OCUPAÇÃO E FLUXOS)",
+"grupo": "PRODUÇÃO",
+"marco": null,
+"tarefa": null,
+"label": "PRODUÇÃO",
+"level": "grupo",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": null,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 28,
+"eixo": "ARQUITETURA (PLANO DE OCUPAÇÃO E FLUXOS)",
+"grupo": "PRODUÇÃO",
+"marco": null,
+"tarefa": null,
+"label": "PRODUÇÃO",
+"level": "grupo",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": null,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 29,
+"eixo": "ARQUITETURA (PLANO DE OCUPAÇÃO E FLUXOS)",
+"grupo": null,
+"marco": null,
+"tarefa": "PRODUTOS",
+"label": "PRODUTOS",
+"level": "tarefa",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": null,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 30,
+"eixo": "ARQUITETURA (PLANO DE OCUPAÇÃO E FLUXOS)",
+"grupo": "PRODUTOS",
+"marco": null,
+"tarefa": "ITEM 2 - PLANO DE OCUPAÇÃO ARQUITETÔNICA",
+"label": "ITEM 2 - PLANO DE OCUPAÇÃO ARQUITETÔNICA",
+"level": "tarefa",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 60.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 31,
+"eixo": "ARQUITETURA (PLANO DE OCUPAÇÃO E FLUXOS)",
+"grupo": "PRODUTOS",
+"marco": "ITEM 2 - PLANO DE OCUPAÇÃO ARQUITETÔNICA",
+"tarefa": null,
+"label": "ITEM 2 - PLANO DE OCUPAÇÃO ARQUITETÔNICA",
+"level": "marco",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": null,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 32,
+"eixo": "ARQUITETURA (PLANO DE OCUPAÇÃO E FLUXOS)",
+"grupo": "PRODUTOS",
+"marco": "ITEM 2 - PLANO DE OCUPAÇÃO ARQUITETÔNICA",
+"tarefa": null,
+"label": "ITEM 2 - PLANO DE OCUPAÇÃO ARQUITETÔNICA",
+"level": "marco",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": null,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 33,
+"eixo": "ARQUITETURA (PLANO DE OCUPAÇÃO E FLUXOS)",
+"grupo": "PRODUTOS",
+"marco": "ITEM 2 - PLANO DE OCUPAÇÃO ARQUITETÔNICA",
+"tarefa": null,
+"label": "ITEM 2 - PLANO DE OCUPAÇÃO ARQUITETÔNICA",
+"level": "marco",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": null,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 34,
+"eixo": "ARQUITETURA (PLANO DE OCUPAÇÃO E FLUXOS)",
+"grupo": "PRODUTOS",
+"marco": null,
+"tarefa": "ITEM 3 - RELATÓRIO DE CIRCULAÇÃO E ACESSIBILIDADE",
+"label": "ITEM 3 - RELATÓRIO DE CIRCULAÇÃO E ACESSIBILIDADE",
+"level": "tarefa",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 35,
+"eixo": "ARQUITETURA (PLANO DE OCUPAÇÃO E FLUXOS)",
+"grupo": "PRODUTOS",
+"marco": "ITEM 3 - RELATÓRIO DE CIRCULAÇÃO E ACESSIBILIDADE",
+"tarefa": null,
+"label": "ITEM 3 - RELATÓRIO DE CIRCULAÇÃO E ACESSIBILIDADE",
+"level": "marco",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": null,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 36,
+"eixo": "ARQUITETURA (PLANO DE OCUPAÇÃO E FLUXOS)",
+"grupo": "PRODUTOS",
+"marco": "ITEM 3 - RELATÓRIO DE CIRCULAÇÃO E ACESSIBILIDADE",
+"tarefa": null,
+"label": "ITEM 3 - RELATÓRIO DE CIRCULAÇÃO E ACESSIBILIDADE",
+"level": "marco",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": null,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 37,
+"eixo": "ARQUITETURA (PLANO DE OCUPAÇÃO E FLUXOS)",
+"grupo": "PRODUTOS",
+"marco": "ITEM 3 - RELATÓRIO DE CIRCULAÇÃO E ACESSIBILIDADE",
+"tarefa": null,
+"label": "ITEM 3 - RELATÓRIO DE CIRCULAÇÃO E ACESSIBILIDADE",
+"level": "marco",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": null,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 38,
+"eixo": "EXPOGRAFIA E CONTEÚDO APLICADO",
+"grupo": null,
+"marco": null,
+"tarefa": "EXPOGRAFIA E CONTEÚDO APLICADO",
+"label": "EXPOGRAFIA E CONTEÚDO APLICADO",
+"level": "tarefa",
+"responsavel": "Vitor Garcez de Oliveira",
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 3.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 39,
+"eixo": "EXPOGRAFIA E CONTEÚDO APLICADO",
+"grupo": null,
+"marco": null,
+"tarefa": "PRODUÇÃO",
+"label": "PRODUÇÃO",
+"level": "tarefa",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 40,
+"eixo": "EXPOGRAFIA E CONTEÚDO APLICADO",
+"grupo": "PRODUÇÃO",
+"marco": null,
+"tarefa": null,
+"label": "PRODUÇÃO",
+"level": "grupo",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 41,
+"eixo": "EXPOGRAFIA E CONTEÚDO APLICADO",
+"grupo": "PRODUÇÃO",
+"marco": null,
+"tarefa": null,
+"label": "PRODUÇÃO",
+"level": "grupo",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 42,
+"eixo": "EXPOGRAFIA E CONTEÚDO APLICADO",
+"grupo": "PRODUÇÃO",
+"marco": null,
+"tarefa": null,
+"label": "PRODUÇÃO",
+"level": "grupo",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 43,
+"eixo": "EXPOGRAFIA E CONTEÚDO APLICADO",
+"grupo": null,
+"marco": null,
+"tarefa": "PRODUTOS",
+"label": "PRODUTOS",
+"level": "tarefa",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 3.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 44,
+"eixo": "EXPOGRAFIA E CONTEÚDO APLICADO",
+"grupo": "PRODUTOS",
+"marco": null,
+"tarefa": "ITEM 4 - PLANO MUSEOGRÁFICO",
+"label": "ITEM 4 - PLANO MUSEOGRÁFICO",
+"level": "tarefa",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 18.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 45,
+"eixo": "EXPOGRAFIA E CONTEÚDO APLICADO",
+"grupo": "PRODUTOS",
+"marco": null,
+"tarefa": null,
+"label": "PRODUTOS",
+"level": "grupo",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 3.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 46,
+"eixo": "EXPOGRAFIA E CONTEÚDO APLICADO",
+"grupo": "PRODUTOS",
+"marco": null,
+"tarefa": null,
+"label": "PRODUTOS",
+"level": "grupo",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 3.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 47,
+"eixo": "EXPOGRAFIA E CONTEÚDO APLICADO",
+"grupo": "PRODUTOS",
+"marco": null,
+"tarefa": "ITEM 5 - PROJETO EXPOGRÁFICO",
+"label": "ITEM 5 - PROJETO EXPOGRÁFICO",
+"level": "tarefa",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 48,
+"eixo": "EXPOGRAFIA E CONTEÚDO APLICADO",
+"grupo": "PRODUTOS",
+"marco": null,
+"tarefa": null,
+"label": "PRODUTOS",
+"level": "grupo",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 49,
+"eixo": "EXPOGRAFIA E CONTEÚDO APLICADO",
+"grupo": "PRODUTOS",
+"marco": null,
+"tarefa": null,
+"label": "PRODUTOS",
+"level": "grupo",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 50,
+"eixo": "PROJETOS COMPLEMENTARES",
+"grupo": null,
+"marco": null,
+"tarefa": "PROJETOS COMPLEMENTARES",
+"label": "PROJETOS COMPLEMENTARES",
+"level": "tarefa",
+"responsavel": "Tatiane Baptista Proba Rocha",
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 51,
+"eixo": "PROJETOS COMPLEMENTARES",
+"grupo": null,
+"marco": null,
+"tarefa": "PRODUÇÃO",
+"label": "PRODUÇÃO",
+"level": "tarefa",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 52,
+"eixo": "PROJETOS COMPLEMENTARES",
+"grupo": "PRODUÇÃO",
+"marco": null,
+"tarefa": null,
+"label": "PRODUÇÃO",
+"level": "grupo",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 53,
+"eixo": "PROJETOS COMPLEMENTARES",
+"grupo": "PRODUÇÃO",
+"marco": null,
+"tarefa": null,
+"label": "PRODUÇÃO",
+"level": "grupo",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 54,
+"eixo": "PROJETOS COMPLEMENTARES",
+"grupo": "PRODUÇÃO",
+"marco": null,
+"tarefa": null,
+"label": "PRODUÇÃO",
+"level": "grupo",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 55,
+"eixo": "PROJETOS COMPLEMENTARES",
+"grupo": null,
+"marco": null,
+"tarefa": "PRODUTOS",
+"label": "PRODUTOS",
+"level": "tarefa",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 56,
+"eixo": "PROJETOS COMPLEMENTARES",
+"grupo": "PRODUTOS",
+"marco": null,
+"tarefa": "ITEM 6 - RELATÓRIO DE INFRAESTRUTURA TECNOLÓGICA",
+"label": "ITEM 6 - RELATÓRIO DE INFRAESTRUTURA TECNOLÓGICA",
+"level": "tarefa",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 57,
+"eixo": "PROJETOS COMPLEMENTARES",
+"grupo": "PRODUTOS",
+"marco": null,
+"tarefa": null,
+"label": "PRODUTOS",
+"level": "grupo",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 58,
+"eixo": "PROJETOS COMPLEMENTARES",
+"grupo": "PRODUTOS",
+"marco": null,
+"tarefa": null,
+"label": "PRODUTOS",
+"level": "grupo",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 59,
+"eixo": "IDENTIDADE VISUAL E BRANDING",
+"grupo": null,
+"marco": null,
+"tarefa": "IDENTIDADE VISUAL E BRANDING",
+"label": "IDENTIDADE VISUAL E BRANDING",
+"level": "tarefa",
+"responsavel": "Iago Gonçalves Pereira",
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": "2026-10-01",
+"duracao": null,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 60,
+"eixo": "IDENTIDADE VISUAL E BRANDING",
+"grupo": null,
+"marco": null,
+"tarefa": "PRODUÇÃO",
+"label": "PRODUÇÃO",
+"level": "tarefa",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 61,
+"eixo": "IDENTIDADE VISUAL E BRANDING",
+"grupo": "PRODUÇÃO",
+"marco": null,
+"tarefa": null,
+"label": "PRODUÇÃO",
+"level": "grupo",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 62,
+"eixo": "IDENTIDADE VISUAL E BRANDING",
+"grupo": "PRODUÇÃO",
+"marco": null,
+"tarefa": null,
+"label": "PRODUÇÃO",
+"level": "grupo",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": null,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 63,
+"eixo": "IDENTIDADE VISUAL E BRANDING",
+"grupo": "PRODUÇÃO",
+"marco": null,
+"tarefa": null,
+"label": "PRODUÇÃO",
+"level": "grupo",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": null,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 64,
+"eixo": "IDENTIDADE VISUAL E BRANDING",
+"grupo": null,
+"marco": null,
+"tarefa": "PRODUTOS",
+"label": "PRODUTOS",
+"level": "tarefa",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": "2026-10-01",
+"data_fim": "2026-10-01",
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": true,
+"is_overdue": false
+},
+{
+"idx": 65,
+"eixo": "IDENTIDADE VISUAL E BRANDING",
+"grupo": "PRODUTOS",
+"marco": null,
+"tarefa": "ITEM 7 - PROJETO GRÁFICO",
+"label": "ITEM 7 - PROJETO GRÁFICO",
+"level": "tarefa",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": "2026-10-01",
+"data_fim": "2026-10-01",
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": true,
+"is_overdue": false
+},
+{
+"idx": 66,
+"eixo": "IDENTIDADE VISUAL E BRANDING",
+"grupo": "PRODUTOS",
+"marco": "ITEM 7 - PROJETO GRÁFICO",
+"tarefa": null,
+"label": "ITEM 7 - PROJETO GRÁFICO",
+"level": "marco",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": "2026-10-01",
+"data_fim": "2026-10-01",
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": true,
+"is_overdue": false
+},
+{
+"idx": 67,
+"eixo": "IDENTIDADE VISUAL E BRANDING",
+"grupo": "PRODUTOS",
+"marco": "ITEM 7 - PROJETO GRÁFICO",
+"tarefa": null,
+"label": "ITEM 7 - PROJETO GRÁFICO",
+"level": "marco",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": null,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 68,
+"eixo": "PLANO DE GESTÃO, GOVERNANÇA E SUSTENTABILIDADE",
+"grupo": null,
+"marco": null,
+"tarefa": "PLANO DE GESTÃO, GOVERNANÇA E SUSTENTABILIDADE",
+"label": "PLANO DE GESTÃO, GOVERNANÇA E SUSTENTABILIDADE",
+"level": "tarefa",
+"responsavel": "Tatiana Paulino de Azevedo",
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 69,
+"eixo": "PLANO DE GESTÃO, GOVERNANÇA E SUSTENTABILIDADE",
+"grupo": null,
+"marco": null,
+"tarefa": "PRODUÇÃO",
+"label": "PRODUÇÃO",
+"level": "tarefa",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": null,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 70,
+"eixo": "PLANO DE GESTÃO, GOVERNANÇA E SUSTENTABILIDADE",
+"grupo": "PRODUÇÃO",
+"marco": null,
+"tarefa": null,
+"label": "PRODUÇÃO",
+"level": "grupo",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 71,
+"eixo": "PLANO DE GESTÃO, GOVERNANÇA E SUSTENTABILIDADE",
+"grupo": "PRODUÇÃO",
+"marco": null,
+"tarefa": null,
+"label": "PRODUÇÃO",
+"level": "grupo",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 72,
+"eixo": "PLANO DE GESTÃO, GOVERNANÇA E SUSTENTABILIDADE",
+"grupo": "PRODUÇÃO",
+"marco": null,
+"tarefa": null,
+"label": "PRODUÇÃO",
+"level": "grupo",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": null,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 73,
+"eixo": "PLANO DE GESTÃO, GOVERNANÇA E SUSTENTABILIDADE",
+"grupo": null,
+"marco": null,
+"tarefa": "PRODUTOS",
+"label": "PRODUTOS",
+"level": "tarefa",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 74,
+"eixo": "PLANO DE GESTÃO, GOVERNANÇA E SUSTENTABILIDADE",
+"grupo": "PRODUTOS",
+"marco": null,
+"tarefa": "ITEM 8 - PLANO DE GESTÃO",
+"label": "ITEM 8 - PLANO DE GESTÃO",
+"level": "tarefa",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 75,
+"eixo": "PLANO DE GESTÃO, GOVERNANÇA E SUSTENTABILIDADE",
+"grupo": "PRODUTOS",
+"marco": "ITEM 8 - PLANO DE GESTÃO",
+"tarefa": null,
+"label": "ITEM 8 - PLANO DE GESTÃO",
+"level": "marco",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": 0.0,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+},
+{
+"idx": 76,
+"eixo": "PLANO DE GESTÃO, GOVERNANÇA E SUSTENTABILIDADE",
+"grupo": "PRODUTOS",
+"marco": "ITEM 8 - PLANO DE GESTÃO",
+"tarefa": null,
+"label": "ITEM 8 - PLANO DE GESTÃO",
+"level": "marco",
+"responsavel": null,
+"status": "Definir Datas",
+"data_inicio": null,
+"data_fim": null,
+"duracao": null,
+"prioridade": null,
+"predecessores": null,
+"complexidade": null,
+"has_dates": false,
+"is_overdue": false
+}
+];
+const TODAY = new Date('2026-09-18T00:00:00');
+
+/* ---------------- status taxonomy ---------------- */
+const STATUS_ORDER = ['atrasado','risco','andamento','iniciar','definir','cancelado','congelado','feito'];
+const STATUS_META = {
+  feito:      {label:'Feito',               color:'var(--c-feito)',      bg:'var(--c-feito-bg)'},
+  andamento:  {label:'Em andamento',        color:'var(--c-andamento)',  bg:'var(--c-andamento-bg)'},
+  risco:      {label:'Risco de atraso',     color:'var(--c-risco)',      bg:'var(--c-risco-bg)'},
+  atrasado:   {label:'Atrasado',            color:'var(--c-atrasado)',   bg:'var(--c-atrasado-bg)'},
+  iniciar:    {label:'A iniciar',           color:'var(--c-iniciar)',    bg:'var(--c-iniciar-bg)'},
+  definir:    {label:'Definir datas',       color:'var(--c-definir)',    bg:'var(--c-definir-bg)'},
+  cancelado:  {label:'Cancelado',           color:'var(--c-cancelado)',  bg:'var(--c-cancelado-bg)'},
+  congelado:  {label:'Cancelado/Congelado', color:'var(--c-congelado)',  bg:'var(--c-congelado-bg)'},
+};
+function statusKey(status, isOverdue){
+  if(isOverdue) return 'atrasado';
+  if(!status) return 'definir';
+  const s = status.toLowerCase();
+  if(s.includes('congel')) return 'congelado';
+  if(s.includes('cancelad')) return 'cancelado';
+  if(s.includes('feito') || s.includes('conclu')) return 'feito';
+  if(s.includes('andamento')) return 'andamento';
+  if(s.includes('risco')) return 'risco';
+  if(s.includes('atrasad')) return 'atrasado';
+  if(s.includes('iniciar')) return 'iniciar';
+  return 'definir';
+}
+function worstOf(keys){
+  for(const k of STATUS_ORDER){ if(keys.includes(k)) return k; }
+  return 'definir';
+}
+
+/* ---------------- state ---------------- */
+let state = { status:'all', resp:'all', from:null, to:null, search:'', granularity:'month', expandAll:false };
+let tab = 'gantt';
+const expandedNodes = new Set(); // node ids user has toggled individually
+
+/* ---------------- helpers ---------------- */
+function parseDate(s){ return s ? new Date(s+'T00:00:00') : null; }
+function fmtDateShort(d){ return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}); }
+function uniqueSorted(arr){ return [...new Set(arr.filter(Boolean))].sort(); }
+
+function filteredRecords(){
+  return RECORDS.filter(r=>{
+    const k = statusKey(r.status, r.is_overdue);
+    if(state.status!=='all' && k!==state.status) return false;
+    if(state.resp!=='all' && r.responsavel!==state.resp) return false;
+    if(state.from && r.data_fim && r.data_fim < state.from) return false;
+    if(state.to && r.data_inicio && r.data_inicio > state.to) return false;
+    if(state.search){
+      const hay = [r.eixo,r.grupo,r.marco,r.tarefa,r.responsavel].filter(Boolean).join(' ').toLowerCase();
+      if(!hay.includes(state.search)) return false;
+    }
+    return true;
+  });
+}
+
+/* ---------------- tree building: eixo > grupo > marco, leaves = rows ---------------- */
+/*
+ * A planilha usa uma convenção de "escada": uma linha com Grupo e Marco
+ * ainda em branco pode ser (a) a própria linha-resumo do Eixo, se a TAREFA
+ * repete o nome do Eixo, ou (b) o anúncio de um novo Grupo, cujo nome vem
+ * na coluna TAREFA (a coluna Grupo só é preenchida na(s) linha(s) seguinte(s)).
+ * O mesmo padrão se repete um nível abaixo para Marco. Só quando Grupo E
+ * Marco já estão preenchidos a TAREFA é de fato uma atividade-folha.
+ */
+function buildTree(rows){
+  const norm = s => (s||'').trim().toLowerCase();
+  const eixoMap = {};
+  function getEixo(name){
+    if(!eixoMap[name]) eixoMap[name] = {id:'/'+name, name, depth:0, children:{}, self:null, leaves:[]};
+    return eixoMap[name];
+  }
+  function getChild(parent, name){
+    if(!parent.children[name]) parent.children[name] = {id:parent.id+'/'+name, name, depth:parent.depth+1, children:{}, self:null, leaves:[]};
+    return parent.children[name];
+  }
+
+  rows.forEach(r=>{
+    const eixoNode = getEixo(r.eixo || '—');
+    const g = r.grupo, m = r.marco, t = r.tarefa;
+
+    if(m){
+      // Grupo + Marco preenchidos (ou Marco preenchido sem Grupo, caso raro) -> nível folha
+      const gNode = getChild(eixoNode, g || '(sem grupo)');
+      const mNode = getChild(gNode, m);
+      if(t){ mNode.leaves.push(r); }
+      else if(!mNode.self){ mNode.self = r; }
+    } else if(g){
+      const gNode = getChild(eixoNode, g);
+      if(t && norm(t) !== norm(g)){
+        const mNode = getChild(gNode, t); // linha anuncia o Marco seguinte
+        mNode.self = r;
+      } else {
+        gNode.self = r; // linha-resumo do próprio Grupo
+      }
+    } else {
+      if(t && norm(t) !== norm(r.eixo)){
+        const gNode = getChild(eixoNode, t); // linha anuncia o Grupo seguinte
+        gNode.self = r;
+      } else {
+        eixoNode.self = r; // linha-resumo do próprio Eixo
+      }
+    }
+  });
+
+  return {id:'root', name:'root', depth:-1, children:eixoMap, self:null, leaves:[]};
+}
+function nodeAllRows(node){
+  let out = node.self ? [node.self] : [];
+  out = out.concat(node.leaves || []);
+  Object.values(node.children).forEach(c=>{ out = out.concat(nodeAllRows(c)); });
+  return out;
+}
+function nodeDateRange(node){
+  const rows = nodeAllRows(node).filter(r=>r.has_dates);
+  if(rows.length===0) return null;
+  const min = new Date(Math.min(...rows.map(r=>parseDate(r.data_inicio))));
+  const max = new Date(Math.max(...rows.map(r=>parseDate(r.data_fim))));
+  return {min,max};
+}
+function nodeDominantStatus(node){
+  const rows = nodeAllRows(node);
+  const keys = rows.map(r=>statusKey(r.status, r.is_overdue));
+  return worstOf(keys);
+}
+
+/* ---------------- tabs ---------------- */
+function setTab(t){
+  tab = t;
+  document.getElementById('tabBtnGantt').classList.toggle('active', t==='gantt');
+  document.getElementById('tabBtnStatus').classList.toggle('active', t==='status');
+  document.getElementById('tabGantt').classList.toggle('hidden', t!=='gantt');
+  document.getElementById('ganttMeta').classList.toggle('hidden', t!=='gantt');
+  document.getElementById('viewToggleWrap').classList.toggle('hidden', t!=='gantt');
+  document.getElementById('tabStatus').classList.toggle('hidden', t!=='status');
+  render();
+}
+function setGranularity(g){ state.granularity = g; render(); }
+
+/* ---------------- filter controls ---------------- */
+function initControls(){
+  const fStatus = document.getElementById('fStatus');
+  fStatus.innerHTML = '<option value="all">Todos os status</option>' +
+    STATUS_ORDER.map(k=>`<option value="${k}">${STATUS_META[k].label}</option>`).join('');
+  const fResp = document.getElementById('fResp');
+  fResp.innerHTML = '<option value="all">Todos os responsáveis</option>' +
+    uniqueSorted(RECORDS.map(r=>r.responsavel)).map(n=>`<option value="${n}">${n}</option>`).join('');
+  document.getElementById('search').addEventListener('input', e=>{ state.search = e.target.value.trim().toLowerCase(); render(); });
+}
+function applyFilters(){
+  state.status = document.getElementById('fStatus').value;
+  state.resp = document.getElementById('fResp').value;
+  state.from = document.getElementById('fFrom').value || null;
+  state.to = document.getElementById('fTo').value || null;
+  render();
+}
+function clearFilters(){
+  document.getElementById('fStatus').value='all';
+  document.getElementById('fResp').value='all';
+  document.getElementById('fFrom').value='';
+  document.getElementById('fTo').value='';
+  document.getElementById('search').value='';
+  state = { status:'all', resp:'all', from:null, to:null, search:'', granularity:state.granularity, expandAll:false };
+  render();
+}
+function toggleExpandAll(){
+  state.expandAll = !state.expandAll;
+  expandedNodes.clear();
+  document.getElementById('btnExpandAll').textContent = state.expandAll ? '▴ Recolher Tudo' : '▾ Expandir Tudo';
+  render();
+}
+function toggleNode(id){
+  if(expandedNodes.has(id)) expandedNodes.delete(id); else expandedNodes.add(id);
+  render();
+}
+function isExpanded(id){ return state.expandAll ? !expandedNodes.has(id) : expandedNodes.has(id); }
+
+/* ================= GANTT TAB ================= */
+function buildAxis(minD, maxD, granularity){
+  const cols = [];
+  if(granularity==='month'){
+    let cur = new Date(minD.getFullYear(), minD.getMonth(), 1);
+    while(cur <= maxD){
+      cols.push({label:cur.toLocaleDateString('pt-BR',{month:'short'}), start:new Date(cur), end:new Date(cur.getFullYear(),cur.getMonth()+1,1)});
+      cur.setMonth(cur.getMonth()+1);
+    }
+  } else {
+    let cur = new Date(minD);
+    cur.setDate(cur.getDate() - cur.getDay());
+    while(cur <= maxD){
+      const end = new Date(cur); end.setDate(end.getDate()+7);
+      cols.push({label:fmtDateShort(cur), start:new Date(cur), end});
+      cur = end;
+    }
+  }
+  return cols;
+}
+
+function renderGantt(){
+  const rows = filteredRecords();
+  const meta = document.getElementById('ganttMeta');
+  const root = buildTree(rows);
+  const eixoNodes = Object.values(root.children);
+  const withDates = rows.filter(r=>r.has_dates);
+
+  if(eixoNodes.length===0){
+    meta.textContent = 'Nenhum item corresponde a este filtro.';
+    document.getElementById('tabGantt').innerHTML = '';
+    return;
+  }
+  meta.textContent = `Exibindo ${rows.length} itens · ${eixoNodes.length} eixos · ${withDates.length} com datas definidas`;
+
+  let minD, maxD;
+  if(withDates.length){
+    minD = new Date(Math.min(...withDates.map(r=>parseDate(r.data_inicio))));
+    maxD = new Date(Math.max(...withDates.map(r=>parseDate(r.data_fim))));
+  } else { minD = new Date(TODAY); maxD = new Date(TODAY); }
+  minD.setDate(minD.getDate()-4); maxD.setDate(maxD.getDate()+4);
+  if(maxD < TODAY) maxD = new Date(TODAY.getTime()+4*86400000);
+  if(minD > TODAY) minD = new Date(TODAY.getTime()-4*86400000);
+
+  const cols = buildAxis(minD, maxD, state.granularity);
+  const totalSpan = cols.length ? (cols[cols.length-1].end - cols[0].start) : 1;
+  const axisStart = cols.length ? cols[0].start : minD;
+
+  function pctOf(d){ return Math.max(0, Math.min(100, (d - axisStart)/totalSpan*100)); }
+
+  function axisHtml(){
+    return `<div class="gantt-row"><div class="gantt-label-col"></div>
+      <div class="gantt-chart-col"><div class="gantt-axis">${cols.map(c=>`<div class="ax-cell">${c.label}</div>`).join('')}</div></div></div>`;
+  }
+
+  function renderBarOrMilestone(left, width, color, statusLabel, tooltip){
+    const narrow = width < 8; // não cabe texto legível dentro da barra
+    if(narrow){
+      // marco de duração zero/curta -> losango, sem texto cortado
+      const size = 14;
+      return `<div class="gantt-milestone" style="left:calc(${left}% - ${size/2}px);background:${color}" title="${tooltip}"></div>`;
+    }
+    return `<div class="gantt-bar" style="left:${left}%;width:${width}%;background:${color}" title="${tooltip}">
+      <span class="lbl">${statusLabel.toUpperCase()}</span></div>`;
+  }
+
+  function barHtml(node){
+    const range = nodeDateRange(node);
+    let bar = '';
+    if(range){
+      const left = pctOf(range.min);
+      const width = Math.max(pctOf(range.max) - left, 1.2);
+      const key = nodeDominantStatus(node);
+      const meta = STATUS_META[key];
+      const tooltip = `${node.name} · ${meta.label} · ${fmtDateShort(range.min)} → ${fmtDateShort(range.max)}`;
+      bar = renderBarOrMilestone(left, width, meta.color, meta.label, tooltip);
+    }
+    const todayPct = pctOf(TODAY);
+    const todayLine = (todayPct>=0 && todayPct<=100) ? `<div class="today-marker" style="left:${todayPct}%"></div>` : '';
+    return `<div class="gantt-track">${cols.map(()=>'<div class="g-cell"></div>').join('')}${bar}${todayLine}</div>`;
+  }
+
+  function renderNode(node, depth){
+    const hasChildren = Object.keys(node.children).length>0 || node.leaves.length>0;
+    const expanded = isExpanded(node.id);
+    const key = nodeDominantStatus(node);
+    const label = node.name;
+    let html = `<div class="gantt-row">
+      <div class="gantt-label-col" style="padding-left:${10+depth*18}px">
+        ${hasChildren ? `<span class="node-toggle clickable" onclick="toggleNode('${node.id}')">${expanded?'▾':'▸'}</span>` : `<span class="node-toggle"></span>`}
+        <span class="node-dot" style="background:${STATUS_META[key].color}"></span>
+        <span class="node-label" title="${node.name}">${label}</span>
+      </div>
+      <div class="gantt-chart-col">${barHtml(node)}</div>
+    </div>`;
+    if(hasChildren && expanded){
+      Object.values(node.children).forEach(c=>{ html += renderNode(c, depth+1); });
+      node.leaves.forEach(r=>{ html += renderLeafRow(r, depth+1); });
+    }
+    return html;
+  }
+
+  function renderLeafRow(r, depth){
+    const key = statusKey(r.status, r.is_overdue);
+    let bar = '';
+    if(r.has_dates){
+      const left = pctOf(parseDate(r.data_inicio));
+      const width = Math.max(pctOf(parseDate(r.data_fim)) - left, 1.2);
+      const meta = STATUS_META[key];
+      const tooltip = `${r.label} · ${meta.label} · ${fmtDateShort(parseDate(r.data_inicio))} → ${fmtDateShort(parseDate(r.data_fim))}`;
+      bar = renderBarOrMilestone(left, width, meta.color, meta.label, tooltip);
+    }
+    const todayPct = pctOf(TODAY);
+    const todayLine = (todayPct>=0 && todayPct<=100) ? `<div class="today-marker" style="left:${todayPct}%"></div>` : '';
+    return `<div class="gantt-row">
+      <div class="gantt-label-col" style="padding-left:${10+depth*18}px">
+        <span class="node-toggle"></span>
+        <span class="node-dot" style="background:${STATUS_META[key].color}"></span>
+        <span class="node-label" title="${r.label}">${r.label}</span>
+      </div>
+      <div class="gantt-chart-col"><div class="gantt-track">${cols.map(()=>'<div class="g-cell"></div>').join('')}${bar}${todayLine}</div></div>
+    </div>`;
+  }
+
+  let html = `<div class="tree gantt-scroll">` + axisHtml();
+  eixoNodes.forEach((node, i)=>{
+    const expanded = isExpanded(node.id);
+    const key = nodeDominantStatus(node);
+    const nGroups = Object.keys(node.children).length;
+    html += `<div class="gantt-row">
+      <div class="gantt-label-col" style="font-weight:600;">
+        <span class="node-toggle clickable" onclick="toggleNode('${node.id}')">${expanded?'▾':'▸'}</span>
+        <span class="node-badge" style="background:${STATUS_META[key].color}">${i+1}</span>
+        <span class="node-label" title="${node.name}">${node.name}</span>
+        <span class="node-meta">${nGroups} grupo(s)</span>
+      </div>
+      <div class="gantt-chart-col">${barHtml(node)}</div>
+    </div>`;
+    if(expanded){
+      Object.values(node.children).forEach(c=>{ html += renderNode(c, 1); });
+      node.leaves.forEach(r=>{ html += renderLeafRow(r, 1); });
+    }
+  });
+  html += `</div>`;
+  document.getElementById('tabGantt').innerHTML = html;
+  document.getElementById('btnMensal').classList.toggle('primary', state.granularity==='month');
+  document.getElementById('btnSemanal').classList.toggle('primary', state.granularity==='week');
+}
+
+/* ================= STATUS REPORT TAB ================= */
+function renderKpis(rows){
+  const total = rows.length || 1;
+  const marcoRows = rows.filter(r=>r.marco);
+  const marcoTotal = marcoRows.length || 1;
+  const marcoFeito = marcoRows.filter(r=>statusKey(r.status,r.is_overdue)==='feito').length;
+
+  const counts = {};
+  STATUS_ORDER.forEach(k=>counts[k]=0);
+  rows.forEach(r=>{ counts[statusKey(r.status,r.is_overdue)]++; });
+
+  const heroPct = Math.round(100*marcoFeito/marcoTotal);
+  const cards = [
+    {cls:'hero', val: heroPct+'%', lbl:'MARCOS CONCLUÍDOS', sub:`${marcoFeito} de ${marcoTotal} marcos entregues`},
+    {cls:'k-feito', val: Math.round(100*counts.feito/total)+'%', lbl:'% CONCLUÍDAS', sub:`${counts.feito} itens`},
+    {cls:'k-andamento', val: Math.round(100*counts.andamento/total)+'%', lbl:'% EM ANDAMENTO', sub:`${counts.andamento} itens`},
+    {cls:'k-iniciar', val: Math.round(100*counts.iniciar/total)+'%', lbl:'% A INICIAR', sub:`${counts.iniciar} itens`},
+    {cls:'k-atrasado', val: Math.round(100*counts.atrasado/total)+'%', lbl:'% ATRASADAS', sub:`${counts.atrasado} itens`},
+    {cls:'k-risco', val: Math.round(100*counts.risco/total)+'%', lbl:'% RISCO DE ATRASO', sub:`${counts.risco} itens`},
+  ];
+  document.getElementById('kpiRow').innerHTML = cards.map(c=>`
+    <div class="kpi-card ${c.cls}">
+      <div class="kpi-val num">${c.val}</div>
+      <div class="kpi-sub">${c.sub}</div>
+      <div class="kpi-lbl">${c.lbl}</div>
+    </div>`).join('');
+}
+
+function renderStatusTree(rows){
+  const root = buildTree(rows);
+  const eixoNodes = Object.values(root.children);
+  const nGroupsTotal = eixoNodes.reduce((acc,n)=>acc+Object.keys(n.children).length, 0);
+  document.getElementById('statusMeta').textContent =
+    `Exibindo todos — ${eixoNodes.length} eixos · ${nGroupsTotal} grupos`;
+
+  function pill(key){ return `<span class="pill" style="background:${STATUS_META[key].bg};color:${STATUS_META[key].color}">${STATUS_META[key].label.toUpperCase()}</span>`; }
+
+  function renderGroupNode(node, depth, code){
+    const hasChildren = Object.keys(node.children).length>0 || node.leaves.length>0;
+    const expanded = isExpanded(node.id);
+    const allRows = nodeAllRows(node);
+    const key = nodeDominantStatus(node);
+    const responsaveis = uniqueSorted(allRows.map(r=>r.responsavel));
+    const range = nodeDateRange(node);
+    let html = `<div class="node-row depth-${Math.min(depth,1)}" style="padding:9px 12px 9px ${12+depth*18}px;">
+      ${hasChildren ? `<span class="node-toggle clickable" onclick="toggleNode('${node.id}')">${expanded?'▾':'▸'}</span>` : `<span class="node-toggle"></span>`}
+      <span class="node-dot" style="background:${STATUS_META[key].color}"></span>
+      <span class="code">${code||''}</span>
+      <span class="node-label">${node.name}</span>
+      ${responsaveis[0] ? `<span class="resp-chip">${responsaveis[0]}${responsaveis.length>1?' +'+(responsaveis.length-1):''}</span>` : ''}
+      ${range ? `<span class="node-meta">até ${fmtDateShort(range.max)}</span>` : ''}
+      ${pill(key)}
+      <span class="sr-count">${allRows.length} item(ns)</span>
+    </div>`;
+    if(hasChildren && expanded){
+      Object.values(node.children).forEach((c,j)=>{ html += renderGroupNode(c, depth+1, code? code+'.'+(j+1) : ''+(j+1)); });
+      node.leaves.forEach(r=>{
+        const rk = statusKey(r.status, r.is_overdue);
+        html += `<div class="node-row depth-1" style="padding:8px 12px 8px ${12+(depth+1)*18}px;">
+          <span class="node-toggle"></span>
+          <span class="node-dot" style="background:${STATUS_META[rk].color}"></span>
+          <span class="code"></span>
+          <span class="node-label">${r.label}</span>
+          ${r.responsavel ? `<span class="resp-chip">${r.responsavel}</span>` : ''}
+          ${r.data_fim ? `<span class="node-meta">até ${fmtDateShort(parseDate(r.data_fim))}</span>` : ''}
+          ${pill(rk)}
+        </div>`;
+      });
+    }
+    return html;
+  }
+
+  let html = '';
+  eixoNodes.forEach((node, i)=>{
+    const expanded = isExpanded(node.id);
+    const key = nodeDominantStatus(node);
+    const nGroups = Object.keys(node.children).length;
+    html += `<div class="node-row depth-0" style="padding:11px 12px;">
+      <span class="node-toggle clickable" onclick="toggleNode('${node.id}')">${expanded?'▾':'▸'}</span>
+      <span class="node-badge" style="background:${STATUS_META[key].color}">${i+1}</span>
+      <span class="node-label">${node.name}</span>
+      <span class="node-meta">${nGroups} grupo(s)</span>
+    </div>`;
+    if(expanded){
+      Object.values(node.children).forEach((c,j)=>{ html += renderGroupNode(c, 1, (i+1)+'.'+(j+1)); });
+      node.leaves.forEach(r=>{
+        const rk = statusKey(r.status, r.is_overdue);
+        html += `<div class="node-row depth-1" style="padding:8px 12px 8px 30px;">
+          <span class="node-toggle"></span>
+          <span class="node-dot" style="background:${STATUS_META[rk].color}"></span>
+          <span class="node-label">${r.label}</span>
+          ${r.responsavel ? `<span class="resp-chip">${r.responsavel}</span>` : ''}
+          ${pill(rk)}
+        </div>`;
+      });
+    }
+  });
+  document.getElementById('statusTree').innerHTML = html || '<div style="padding:20px;color:var(--text-faint)">Nenhum item corresponde a este filtro.</div>';
+}
+
+/* ---------------- master render ---------------- */
+function renderDatabanner(){
+  const total = RECORDS.length;
+  const withDates = RECORDS.filter(r=>r.has_dates).length;
+  const withStatus = RECORDS.filter(r=>r.status && r.status.toLowerCase()!=='definir datas').length;
+  document.getElementById('databanner').innerHTML =
+    `<strong>Nota sobre os dados:</strong> desta base, ${withDates} de ${total} itens têm datas definidas` +
+    (withStatus>0
+      ? ` e ${withStatus} já têm um STATUS real preenchido — os demais seguem em "Definir Datas".`
+      : ` e nenhum tem STATUS diferente de "Definir Datas" ainda`) +
+    ` As barras e os cards abaixo refletem exatamente o que está na planilha.`;
+}
+
+function render(){
+  const rows = filteredRecords();
+  renderDatabanner();
+  if(tab==='gantt'){ renderGantt(); }
+  else { renderKpis(rows); renderStatusTree(rows); }
+}
+
+initControls();
+render();
+</script>
+</body>
+</html>
